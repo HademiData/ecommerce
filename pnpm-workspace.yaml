@@ -1,0 +1,9 @@
+packages:
+  - "frontend/*"
+  - "backend/*"
+allowBuilds:
+  '@prisma/client': false
+  '@prisma/engines': false
+  argon2: false
+  esbuild: false
+  prisma: false

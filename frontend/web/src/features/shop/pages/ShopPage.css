@@ -1,0 +1,370 @@
+.shop-page {
+  min-height: 70vh;
+  background-color: #97978c;
+  color: #171915;
+}
+
+.shop-intro {
+  padding: 76px 6% 54px;
+  text-align: center;
+  border-bottom: 1px solid #e4e5dd;
+}
+
+.shop-eyebrow {
+  margin: 0 0 18px;
+  color: #628d35;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.shop-intro h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 5vw, 4.5rem);
+  font-weight: 600;
+  letter-spacing: -0.065em;
+  line-height: 1.08;
+}
+
+.shop-intro > p:last-child {
+  max-width: 520px;
+  margin: 20px auto 0;
+  color: #707168;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.shop-content {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 42px 6% 80px;
+}
+
+.shop-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 46px;
+}
+
+.shop-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(100%, 440px);
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #dedfd6;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.shop-search svg {
+  flex-shrink: 0;
+  color: #73756b;
+}
+
+.shop-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #171915;
+  font-size: 0.9rem;
+}
+
+.shop-search button,
+.shop-message button {
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 6px;
+  background: #171915;
+  color: #fff;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.shop-filters {
+  display: flex;
+  gap: 14px;
+}
+
+.shop-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shop-filters label span {
+  color: #72736a;
+  font-size: 0.75rem;
+}
+
+.shop-filters select {
+  min-width: 155px;
+  min-height: 44px;
+  padding: 0 30px 0 12px;
+  border: 1px solid #dedfd6;
+  border-radius: 8px;
+  background: #fff;
+  color: #171915;
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.shop-results-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.shop-results-heading h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.shop-results-heading > span {
+  color: #77786f;
+  font-size: 0.82rem;
+}
+
+.shop-product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 30px 20px;
+}
+
+.shop-product-card {
+  min-width: 0;
+}
+
+.shop-product-image {
+  position: relative;
+  display: grid;
+  aspect-ratio: 4 / 4.5;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 10px;
+  background: #ecece5;
+}
+
+.shop-product-image > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 350ms ease;
+}
+
+.shop-product-card:hover .shop-product-image > img {
+  transform: scale(1.04);
+}
+
+.shop-image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
+  color: #83877a;
+}
+
+.shop-image-placeholder span {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.shop-stock-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 7px 10px;
+  border-radius: 5px;
+  background: #fff;
+  color: #6a3c32;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.shop-product-info {
+  padding: 16px 2px 0;
+}
+
+.shop-product-category {
+  margin: 0 0 8px;
+  color: #6d8a4d;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.shop-product-info h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.shop-product-description {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 8px 0 16px;
+  color: #77786f;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.shop-product-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.shop-product-bottom strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.shop-product-bottom span {
+  color: #628d35;
+  font-size: 0.7rem;
+}
+
+.shop-product-bottom span:last-child {
+  color: #628d35;
+}
+
+.shop-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  padding: 36px 20px;
+  text-align: center;
+}
+
+.shop-message h3 {
+  margin: 16px 0 8px;
+  font-size: 1.2rem;
+}
+
+.shop-message p {
+  max-width: 440px;
+  color: #77786f;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.shop-message button {
+  margin-top: 10px;
+}
+
+.shop-error {
+  color: #8c3c32;
+}
+
+.shop-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 48px;
+}
+
+.shop-pagination button {
+  padding: 11px 16px;
+  border: 1px solid #d9dbd1;
+  border-radius: 7px;
+  background: #fff;
+  color: #171915;
+  font-size: 0.82rem;
+}
+
+.shop-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.shop-pagination span {
+  color: #77786f;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 1050px) {
+  .shop-product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .shop-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .shop-search {
+    width: 100%;
+  }
+
+  .shop-filters {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 700px) {
+  .shop-intro {
+    padding: 56px 6% 40px;
+  }
+
+  .shop-content {
+    padding: 30px 5% 56px;
+  }
+
+  .shop-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 26px 14px;
+  }
+
+  .shop-filters label {
+    flex: 1;
+    min-width: 135px;
+  }
+
+  .shop-filters select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .shop-product-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 380px) {
+  .shop-product-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shop-product-image {
+    aspect-ratio: 4 / 3.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-product-image > img {
+    transition: none;
+  }
+}

@@ -1,0 +1,148 @@
+
+.product-details-page {
+  min-height: 100vh;
+  padding: 120px 6% 80px;
+  background-color: #97978c;
+  color: #171915;
+}
+
+.product-details-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 64px;
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: center;
+}
+
+.product-details-image {
+  min-height: 480px;
+  overflow: hidden;
+  border-radius: 16px;
+  background-color: #e8e8e0;
+}
+
+.product-details-image img {
+  display: block;
+  width: 100%;
+  height: 480px;
+  object-fit: contain;
+}
+
+.product-details-placeholder {
+  display: flex;
+  min-height: 480px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #77786d;
+}
+
+.product-details-placeholder span {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+}
+
+.product-back-link {
+  display: inline-block;
+  margin-bottom: 42px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.product-details-category {
+  margin-bottom: 12px;
+  color: #42483b;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.product-details-info h1 {
+  margin: 0;
+  font-size: clamp(32px, 4vw, 52px);
+  line-height: 1.1;
+}
+
+.product-details-price {
+  margin: 24px 0;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.product-details-description {
+  max-width: 460px;
+  line-height: 1.8;
+}
+
+.product-details-stock {
+  margin: 24px 0;
+  font-size: 14px;
+}
+
+.product-add-button {
+  width: 100%;
+  max-width: 360px;
+  padding: 17px 24px;
+  border: none;
+  border-radius: 8px;
+  background: #171915;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.product-add-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.product-details-sku {
+  margin-top: 20px;
+  color: #45463e;
+  font-size: 12px;
+}
+
+.product-details-message {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 80px;
+}
+
+@media (max-width: 760px) {
+  .product-details-page {
+    padding: 100px 5% 56px;
+  }
+
+  .product-details-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .product-details-image,
+  .product-details-placeholder {
+    min-height: 300px;
+  }
+
+  .product-details-image img {
+    height: 300px;
+  }
+
+  .product-back-link {
+    margin-bottom: 28px;
+  }
+}
+
+.product-cart-feedback {
+  margin-top: 12px;
+  color: #315c25;
+  font-size: 14px;
+}
+
+.product-cart-feedback a {
+  margin-left: 4px;
+  color: inherit;
+  font-weight: 600;
+  text-underline-offset: 3px;
+}

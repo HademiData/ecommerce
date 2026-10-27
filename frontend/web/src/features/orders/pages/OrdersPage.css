@@ -1,0 +1,260 @@
+.orders-page {
+  min-height: 100vh;
+  padding: 120px 6% 80px;
+  background: #97978c;
+  color: #171915;
+}
+
+.orders-heading {
+  max-width: 1100px;
+  margin: 0 auto 42px;
+}
+
+.orders-eyebrow {
+  margin: 0 0 12px;
+  color: #73766b;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.orders-heading h1 {
+  margin: 0;
+  font-size: clamp(38px, 5vw, 58px);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+}
+
+.orders-subtitle {
+  margin-top: 12px;
+  color: #73766b;
+  font-size: 15px;
+}
+
+.orders-list {
+  display: grid;
+  max-width: 1100px;
+  gap: 18px;
+  margin: 0 auto;
+}
+
+.order-card {
+  padding: 28px 32px;
+  border: 1px solid #e7e7e0;
+  border-radius: 12px;
+  background: #fff;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.order-card:hover {
+  border-color: #d5d6cd;
+  box-shadow: 0 8px 28px rgb(23 25 21 / 4%);
+}
+
+.order-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #eeeeea;
+}
+
+.order-reference {
+  margin: 0 0 8px;
+  color: #77796f;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.order-date {
+  margin: 0;
+  color: #77796f;
+  font-size: 13px;
+}
+
+.order-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 11px;
+  border-radius: 5px;
+  background: #f0f0eb;
+  color: #55574e;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.order-status--confirmed {
+  background: #e8f3e9;
+  color: #286238;
+}
+
+.order-status--pending {
+  background: #fbf1d9;
+  color: #805b13;
+}
+
+.order-status--cancelled {
+  background: #f8e8e6;
+  color: #973d35;
+}
+
+.order-products {
+  display: grid;
+  gap: 16px;
+  padding: 22px 0;
+}
+
+.order-product {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.order-product-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.order-product-quantity {
+  margin: 5px 0 0;
+  color: #77796f;
+  font-size: 12px;
+}
+
+.order-product-price {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.order-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eeeeea;
+}
+
+.order-total-label {
+  margin: 0 0 5px;
+  color: #77796f;
+  font-size: 12px;
+}
+
+.order-total {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.order-cancel-button {
+  min-height: 40px;
+  padding: 10px 15px;
+  border: 1px solid #deded6;
+  border-radius: 6px;
+  background: transparent;
+  color: #8c3832;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease;
+}
+
+.order-cancel-button:hover:not(:disabled) {
+  border-color: #d6aaa5;
+  background: #fbf1ef;
+}
+
+.order-cancel-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.orders-message {
+  max-width: 1100px;
+  margin: 0 auto 20px;
+  font-size: 13px;
+}
+
+.orders-message--error {
+  color: #a12d27;
+}
+
+.orders-message--success {
+  color: #286238;
+}
+
+.orders-empty {
+  max-width: 1100px;
+  min-height: 300px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  border: 1px solid #e7e7e0;
+  border-radius: 12px;
+  background: #fff;
+  text-align: center;
+}
+
+.orders-empty h2 {
+  margin: 20px 0 8px;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.orders-empty p {
+  margin-bottom: 24px;
+  color: #77796f;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .orders-page {
+    padding: 100px 5% 48px;
+  }
+
+  .orders-heading {
+    margin-bottom: 28px;
+  }
+
+  .orders-list {
+    gap: 14px;
+  }
+
+  .order-card {
+    padding: 20px 17px;
+  }
+
+  .order-card-header {
+    gap: 12px;
+  }
+
+  .order-reference {
+    font-size: 10px;
+  }
+
+  .order-status {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+
+  .order-card-footer {
+    align-items: flex-end;
+  }
+
+  .order-total {
+    font-size: 20px;
+  }
+}

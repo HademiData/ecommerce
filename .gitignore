@@ -1,0 +1,23 @@
+.env
+# Environment secrets
+.env
+**/.env
+
+node_modules/
+
+**/node_modules/
+
+dist/
+
+coverage/
+
+.env.*
+
+!.env.example
+.env-backups/
+admin-data-backup-*/
+docker-compose.yml.backup*
+
+pnpm-lock.yaml.backup
+
+pnpm-lock.yaml.before-gateway-repair

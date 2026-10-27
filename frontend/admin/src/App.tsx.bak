@@ -1,0 +1,1028 @@
+import StatCard from './components/StatCard'
+import OrdersTable from './components/OrdersTable'
+import { useEffect, useState, type FormEvent } from 'react'
+
+import {
+  Activity,
+  ArrowDownRight,
+  ArrowUpRight,
+  Bell,
+  ChevronDown,
+  ChevronRight,
+  CircleHelp,
+  CreditCard,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Package,
+  Search,
+  Settings,
+  ShoppingCart,
+  TicketPercent,
+  Users,
+} from 'lucide-react'
+import './App.css'
+
+type Page =
+  | 'Dashboard'
+  | 'Customers'
+  | 'Products'
+  | 'Orders'
+  | 'Analytics'
+  | 'Discounts'
+
+
+
+type Product = {
+  _id: string
+  name: string
+  category: string
+  price: number
+  stock: number
+  sku: string
+  isActive: boolean
+}
+
+type ProductResponse = {
+  data: Product[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
+const navigation: { label: Page; icon: typeof LayoutDashboard }[] = [
+  { label: 'Dashboard', icon: LayoutDashboard },
+  { label: 'Customers', icon: Users },
+  { label: 'Products', icon: Package },
+  { label: 'Orders', icon: ShoppingCart },
+  { label: 'Analytics', icon: Activity },
+  { label: 'Discounts', icon: TicketPercent },
+]
+
+const recentOrders = [
+  { id: 'RT-1048', customer: 'Amara Okafor', date: '20 Oct, 2026', amount: '₦245,000', status: 'Confirmed' },
+  { id: 'RT-1047', customer: 'Tunde Bakare', date: '20 Oct, 2026', amount: '₦82,500', status: 'Pending' },
+  { id: 'RT-1046', customer: 'Zainab Yusuf', date: '19 Oct, 2026', amount: '₦134,000', status: 'Confirmed' },
+  { id: 'RT-1045', customer: 'David James', date: '19 Oct, 2026', amount: '₦56,900', status: 'Cancelled' },
+  { id: 'RT-1044', customer: 'Ifeoma Nwosu', date: '18 Oct, 2026', amount: '₦318,000', status: 'Confirmed' },
+]
+
+const products = [
+  { name: 'Wireless Headphones', category: 'Audio', price: '₦85,000', stock: 24, status: 'In stock' },
+  { name: 'Laptop Stand Pro', category: 'Accessories', price: '₦42,000', stock: 3, status: 'Low stock' },
+  { name: 'Mechanical Keyboard', category: 'Accessories', price: '₦67,500', stock: 18, status: 'In stock' },
+  { name: 'Portable Power Bank', category: 'Power', price: '₦35,000', stock: 0, status: 'Out of stock' },
+]
+
+const customers = [
+  { name: 'Amara Okafor', email: 'amara@example.com', orders: 8, spent: '₦642,000' },
+  { name: 'Tunde Bakare', email: 'tunde@example.com', orders: 4, spent: '₦218,500' },
+  { name: 'Zainab Yusuf', email: 'zainab@example.com', orders: 6, spent: '₦395,000' },
+  { name: 'David James', email: 'david@example.com', orders: 2, spent: '₦96,900' },
+]
+
+const discounts = [
+  { code: 'WELCOME10', type: '10% off', usage: '34 uses', status: 'Active' },
+  { code: 'RÀTECH5000', type: '₦5,000 off', usage: '18 uses', status: 'Active' },
+  { code: 'OCTOBER15', type: '15% off', usage: '52 uses', status: 'Expired' },
+]
+
+function App() {
+  const [page, setPage] = useState<Page>('Dashboard')
+  const [loggedIn, setLoggedIn] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const [tokenId, setTokenId] = useState<string | null>(null)
+  const [adminName, setAdminName] = useState('Store Admin')
+  const [loginError, setLoginError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+
+  const [products, setProducts] = useState<Product[]>([])
+  const [productsLoading, setProductsLoading] = useState(false)
+  const [productsError, setProductsError] = useState('')
+
+
+  useEffect(() => {
+  if (!loggedIn) return
+
+  async function loadProducts() {
+    setProductsLoading(true)
+    setProductsError('')
+
+    try {
+      const response = await fetch('/api/products?limit=100', {
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to load products.')
+      }
+
+      const result: ProductResponse = await response.json()
+      setProducts(result.data)
+    } catch (error) {
+      setProductsError(
+        error instanceof Error ? error.message : 'Failed to load products.',
+      )
+    } finally {
+      setProductsLoading(false)
+    }
+  }
+
+  void loadProducts()
+}, [loggedIn])
+
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search)
+
+  if (params.get('google') !== 'admin') {
+    return
+  }
+
+  window.history.replaceState({}, '', window.location.pathname)
+
+  async function completeGoogleLogin() {
+    setIsSubmitting(true)
+    setLoginError('')
+
+    try {
+      const response = await fetch('/api/auth/session', {
+        credentials: 'include',
+      })
+
+      const session = await response.json().catch(() => null)
+
+      if (
+        !response.ok ||
+        typeof session?.accessToken !== 'string' ||
+        typeof session?.tokenId !== 'string'
+      ) {
+        throw new Error('Google sign-in failed. Please try again.')
+      }
+
+      const adminResponse = await fetch('/api/users/admin', {
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+        },
+      })
+
+      if (!adminResponse.ok) {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tokenId: session.tokenId }),
+        }).catch(() => undefined)
+
+        throw new Error('This Google account does not have admin access.')
+      }
+
+      setTokenId(session.tokenId)
+      setAdminName(
+        [session.user?.firstName, session.user?.lastName]
+          .filter(Boolean)
+          .join(' ') ||
+          session.user?.email ||
+          'Store Admin',
+      )
+      setLoggedIn(true)
+    } catch (error) {
+      setLoginError(
+        error instanceof Error
+          ? error.message
+          : 'Google sign-in failed. Please try again.',
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  void completeGoogleLogin()
+}, [])
+
+  async function handleLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setLoginError('')
+    setIsSubmitting(true)
+
+    try {
+      const loginResponse = await fetch('/api/auth/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const session = await loginResponse.json().catch(() => null)
+
+      if (!loginResponse.ok) {
+        throw new Error(
+          typeof session?.message === 'string'
+            ? session.message
+            : 'Invalid email or password.',
+        )
+      }
+
+      if (
+        typeof session?.accessToken !== 'string' ||
+        typeof session?.tokenId !== 'string'
+      ) {
+        throw new Error('The server returned an invalid login response.')
+      }
+
+      const adminResponse = await fetch('/api/users/admin', {
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+        },
+      })
+
+      if (!adminResponse.ok) {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ tokenId: session.tokenId }),
+        }).catch(() => undefined)
+
+        if (
+          adminResponse.status === 401 ||
+          adminResponse.status === 403
+        ) {
+          throw new Error('This account does not have admin access.')
+        }
+
+        throw new Error('Could not verify admin access. Please try again.')
+      }
+
+      setTokenId(session.tokenId)
+      setAdminName(
+        [
+          session.user?.firstName,
+          session.user?.lastName,
+        ]
+          .filter(Boolean)
+          .join(' ') ||
+          session.user?.email ||
+          'Store Admin',
+      )
+      setPassword('')
+      setLoggedIn(true)
+    } catch (error) {
+      setLoginError(
+        error instanceof Error
+          ? error.message
+          : 'Login failed. Please try again.',
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleLogout() {
+    const currentTokenId = tokenId
+
+    setLoggedIn(false)
+    setTokenId(null)
+    setPassword('')
+    setAdminName('Store Admin')
+    setLoginError('')
+
+    if (currentTokenId) {
+      try {
+        const response = await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ tokenId: currentTokenId }),
+        })
+
+        if (!response.ok) {
+          setLoginError('Could not confirm logout with the server.')
+        }
+      } catch {
+        setLoginError('Could not confirm logout with the server.')
+      }
+    }
+  }
+
+  if (!loggedIn) {
+    return (
+      <main className="login-page">
+        <section className="login-brand-panel">
+          <a className="brand login-brand" href="/">
+            ràtech<span>.</span>
+          </a>
+
+          <div className="login-brand-copy">
+            <span className="eyebrow">THE CONTROL ROOM</span>
+            <h1>
+              Your store.
+              <br />
+              Under control.
+            </h1>
+            <p>
+              Manage products, understand customers, and keep your business
+              moving from one place.
+            </p>
+          </div>
+
+          <div className="login-bottom">
+            <span className="brand-mark">R.</span>
+            <span>Ràtech commerce management</span>
+          </div>
+        </section>
+
+        <section className="login-form-panel">
+          <form className="login-form" onSubmit={handleLogin}>
+            <span className="eyebrow">ADMINISTRATION</span>
+            <h2>Welcome back</h2>
+            <p className="muted">
+              Sign in to access your store dashboard.
+            </p>
+
+            <label htmlFor="admin-email">Email address</label>
+            <input
+              id="admin-email"
+              type="email"
+              placeholder="admin@ratech.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="username"
+              required
+            />
+
+            <label htmlFor="admin-password">Password</label>
+            <input
+              id="admin-password"
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              required
+            />
+
+            {loginError && (
+              <p className="login-notice" role="alert">
+                {loginError}
+              </p>
+            )}
+
+            <button
+              className="primary-button login-submit"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Signing in...' : 'Sign in'}
+              {!isSubmitting && <ChevronRight size={18} />}
+            </button>
+
+
+            <button
+              className="primary-button login-submit"
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => {
+                window.location.href = '/api/auth/google/admin'
+              }}
+            >
+              Continue with Google
+            </button>
+
+            <p className="login-notice">
+              Admin access is verified by the server.
+            </p>
+          </form>
+
+          <span className="login-footer">
+            © 2026 Ràtech. Internal use only.
+          </span>
+        </section>
+      </main>
+    )
+  }
+
+  const filteredOrders = recentOrders.filter((order) =>
+    `${order.id} ${order.customer} ${order.status}`
+      .toLowerCase()
+      .includes(search.toLowerCase()),
+  )
+
+  return (
+    <div className="admin-app">
+      {sidebarOpen && (
+        <button
+          className="sidebar-backdrop"
+          aria-label="Close navigation"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`sidebar ${sidebarOpen ? 'sidebar--open' : ''}`}>
+        <a
+          className="brand sidebar-brand"
+          href="#"
+          onClick={(event) => event.preventDefault()}
+        >
+          ràtech<span>.</span>
+        </a>
+
+        <div className="workspace-label">WORKSPACE</div>
+
+        <nav className="sidebar-nav">
+          {navigation.map(({ label, icon: Icon }) => (
+            <button
+              key={label}
+              className={`nav-item ${page === label ? 'nav-item--active' : ''}`}
+              onClick={() => {
+                setPage(label)
+                setSidebarOpen(false)
+                setSearch('')
+              }}
+            >
+              <Icon size={19} strokeWidth={1.8} />
+              <span>{label}</span>
+              {label === 'Orders' && (
+                <span className="nav-count">3</span>
+              )}
+            </button>
+          ))}
+        </nav>
+
+        <div className="sidebar-bottom">
+          <button
+            className="nav-item"
+            onClick={() => setPage('Dashboard')}
+          >
+            <Settings size={19} strokeWidth={1.8} />
+            <span>Settings</span>
+          </button>
+
+          <button
+            className="nav-item"
+            onClick={() => setPage('Dashboard')}
+          >
+            <CircleHelp size={19} strokeWidth={1.8} />
+            <span>Help &amp; support</span>
+          </button>
+
+          <div className="sidebar-profile">
+            <div className="avatar">{adminName.charAt(0).toUpperCase()}</div>
+
+            <div className="profile-copy">
+              <strong>{adminName}</strong>
+              <span>Administrator</span>
+            </div>
+
+            <button
+              className="icon-button profile-logout"
+              aria-label="Log out"
+              onClick={() => void handleLogout()}
+            >
+              <LogOut size={17} />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <main className="admin-main">
+        <header className="topbar">
+          <button
+            className="icon-button mobile-menu-button"
+            aria-label="Open navigation"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu size={21} />
+          </button>
+
+          <div className="breadcrumb">
+            <span>Ràtech</span>
+            <ChevronRight size={15} />
+            <strong>{page}</strong>
+          </div>
+
+          <div className="topbar-actions">
+            <label className="global-search">
+              <Search size={17} />
+              <input
+                placeholder="Search orders..."
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+              <kbd>/</kbd>
+            </label>
+
+            <button
+              className="icon-button notification-button"
+              aria-label="Notifications"
+            >
+              <Bell size={19} />
+              <span />
+            </button>
+
+            <div className="topbar-divider" />
+
+            <div className="topbar-user">
+              <div className="avatar">
+                {adminName.charAt(0).toUpperCase()}
+              </div>
+              <div className="topbar-user-copy">
+                <strong>{adminName}</strong>
+                <span>Administrator</span>
+              </div>
+              <ChevronDown size={15} />
+            </div>
+          </div>
+        </header>
+
+        <div className="page-content">
+          <div className="page-heading">
+            <div>
+              <span className="eyebrow">STORE OVERVIEW</span>
+              <h1>{page === 'Dashboard' ? 'Good morning.' : page}</h1>
+              <p>
+                {page === 'Dashboard'
+                  ? 'Here’s what is happening with your store today.'
+                  : `Review and manage your store ${page.toLowerCase()}.`}
+              </p>
+            </div>
+
+            <div className="heading-actions">
+              <span className="demo-badge">DEMO DATA</span>
+              <button className="date-button">
+                20 Oct, 2026 <ChevronDown size={15} />
+              </button>
+            </div>
+          </div>
+
+          {page === 'Dashboard' && (
+            <>
+              <section className="stats-grid">
+                <StatCard
+                  title="Total revenue"
+                  value="₦4,285,000"
+                  change="+12.8%"
+                  positive
+                  icon={CreditCard}
+                  note="vs. previous month"
+                />
+                <StatCard
+                  title="Total orders"
+                  value="1,284"
+                  change="+8.2%"
+                  positive
+                  icon={ShoppingCart}
+                  note="vs. previous month"
+                />
+                <StatCard
+                  title="Customers"
+                  value="864"
+                  change="+6.4%"
+                  positive
+                  icon={Users}
+                  note="vs. previous month"
+                />
+                <StatCard
+                  title="Products"
+                  value="146"
+                  change="8 low"
+                  icon={Package}
+                  note="stock needs attention"
+                />
+              </section>
+
+              <section className="dashboard-grid">
+                <div className="panel revenue-panel">
+                  <div className="panel-heading">
+                    <div>
+                      <h2>Revenue overview</h2>
+                      <p>Sales performance throughout the year</p>
+                    </div>
+                    <button className="select-button">
+                      This year <ChevronDown size={14} />
+                    </button>
+                  </div>
+
+                  <div className="chart-summary">
+                    <strong>₦4.28m</strong>
+                    <span>
+                      <ArrowUpRight size={15} /> 12.8%
+                    </span>
+                  </div>
+
+                  <div className="chart">
+                    <div className="chart-y-labels">
+                      <span>₦5m</span>
+                      <span>₦4m</span>
+                      <span>₦3m</span>
+                      <span>₦2m</span>
+                      <span>₦1m</span>
+                    </div>
+
+                    <div className="chart-area">
+                      {[0, 1, 2, 3, 4].map((line) => (
+                        <div
+                          key={line}
+                          className="chart-gridline"
+                          style={{ top: `${line * 25}%` }}
+                        />
+                      ))}
+
+                      <svg
+                        viewBox="0 0 600 190"
+                        preserveAspectRatio="none"
+                        role="img"
+                        aria-label="Illustrative revenue trend"
+                      >
+                        <defs>
+                          <linearGradient
+                            id="revenueFill"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="0%"
+                              stopColor="#a7c98b"
+                              stopOpacity=".34"
+                            />
+                            <stop
+                              offset="100%"
+                              stopColor="#a7c98b"
+                              stopOpacity="0"
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <path
+                          d="M0 155 C35 145 45 128 70 138 S110 150 140 112 S185 125 215 95 S260 112 290 75 S335 102 365 68 S410 85 440 48 S485 75 515 42 S565 55 600 18 L600 190 L0 190 Z"
+                          fill="url(#revenueFill)"
+                        />
+                        <path
+                          d="M0 155 C35 145 45 128 70 138 S110 150 140 112 S185 125 215 95 S260 112 290 75 S335 102 365 68 S410 85 440 48 S485 75 515 42 S565 55 600 18"
+                          fill="none"
+                          stroke="#759b59"
+                          strokeWidth="2.5"
+                          vectorEffect="non-scaling-stroke"
+                        />
+                        <circle
+                          cx="440"
+                          cy="48"
+                          r="4"
+                          fill="#759b59"
+                          stroke="white"
+                          strokeWidth="2"
+                          vectorEffect="non-scaling-stroke"
+                        />
+                      </svg>
+
+                      <div className="chart-x-labels">
+                        <span>Jan</span>
+                        <span>Feb</span>
+                        <span>Mar</span>
+                        <span>Apr</span>
+                        <span>May</span>
+                        <span>Jun</span>
+                        <span>Jul</span>
+                        <span>Aug</span>
+                        <span>Sep</span>
+                        <span>Oct</span>
+                        <span>Nov</span>
+                        <span>Dec</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="panel activity-panel">
+                  <div className="panel-heading">
+                    <div>
+                      <h2>Order status</h2>
+                      <p>Current order breakdown</p>
+                    </div>
+                    <button
+                      className="icon-button"
+                      aria-label="More order status options"
+                    >
+                      <ChevronDown size={17} />
+                    </button>
+                  </div>
+
+                  <div className="donut-wrap">
+                    <div className="donut">
+                      <div>
+                        <strong>1,284</strong>
+                        <span>Total orders</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="status-legend">
+                    <div>
+                      <span className="legend-dot confirmed" />
+                      Confirmed <strong>68%</strong>
+                    </div>
+                    <div>
+                      <span className="legend-dot pending" />
+                      Pending <strong>22%</strong>
+                    </div>
+                    <div>
+                      <span className="legend-dot cancelled" />
+                      Cancelled <strong>10%</strong>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="panel orders-panel">
+                <div className="panel-heading">
+                  <div>
+                    <h2>Recent orders</h2>
+                    <p>A quick look at your latest transactions</p>
+                  </div>
+                  <button
+                    className="text-button"
+                    onClick={() => setPage('Orders')}
+                  >
+                    View all orders <ChevronRight size={16} />
+                  </button>
+                </div>
+                <OrdersTable orders={filteredOrders} />
+              </section>
+            </>
+          )}
+
+          {page === 'Orders' && (
+            <section className="panel orders-panel">
+              <div className="panel-heading">
+                <div>
+                  <h2>All orders</h2>
+                  <p>Search and review customer transactions.</p>
+                </div>
+              </div>
+              <OrdersTable orders={filteredOrders} />
+            </section>
+          )}
+
+          {page === 'Customers' && (
+            <section className="panel orders-panel">
+              <div className="panel-heading">
+                <div>
+                  <h2>Customer directory</h2>
+                  <p>Registered customer overview</p>
+                </div>
+                <span className="demo-badge">SAMPLE RECORDS</span>
+              </div>
+
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Customer</th>
+                      <th>Total orders</th>
+                      <th>Total spent</th>
+                      <th>Account</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {customers
+                      .filter((customer) =>
+                        `${customer.name} ${customer.email}`
+                          .toLowerCase()
+                          .includes(search.toLowerCase()),
+                      )
+                      .map((customer) => (
+                        <tr key={customer.email}>
+                          <td>
+                            <div className="customer-cell">
+                              <div className="avatar">
+                                {customer.name.charAt(0)}
+                              </div>
+                              <div>
+                                <strong>{customer.name}</strong>
+                                <span>{customer.email}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>{customer.orders}</td>
+                          <td className="amount">{customer.spent}</td>
+                          <td>
+                            <span className="status-pill status-confirmed">
+                              Active
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {page === 'Products' && (
+            <section className="panel orders-panel">
+              <div className="panel-heading">
+                <div>
+                  <h2>Product inventory</h2>
+                  <p>Monitor products and stock levels.</p>
+                </div>
+                <button
+                  className="primary-button"
+                  onClick={() =>
+                    window.alert(
+                      'Product creation will be connected in the next phase.',
+                    )
+                  }
+                >
+                  ＋ Add product
+                </button>
+              </div>
+
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Category</th>
+                      <th>Price</th>
+                      <th>Stock</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products
+                      .filter((product) =>
+                        `${product.name} ${product.category}`
+                          .toLowerCase()
+                          .includes(search.toLowerCase()),
+                      )
+                      .map((product) => (
+                        <tr key={product.name}>
+                          <td>
+                            <strong>{product.name}</strong>
+                          </td>
+                          <td>{product.category}</td>
+                          <td className="amount">{product.price}</td>
+                          <td>{product.stock}</td>
+                          <td>
+                            <span
+                              className={`status-pill ${
+                                product.stock === 0
+                                  ? 'status-cancelled'
+                                  : product.stock < 5
+                                    ? 'status-pending'
+                                    : 'status-confirmed'
+                              }`}
+                            >
+                              {product.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {page === 'Analytics' && (
+            <section className="stats-grid analytics-grid">
+              <StatCard
+                title="Average order value"
+                value="₦32,450"
+                change="+4.1%"
+                positive
+                icon={CreditCard}
+                note="sample metric"
+              />
+              <StatCard
+                title="Conversion rate"
+                value="3.8%"
+                change="+0.6%"
+                positive
+                icon={ArrowUpRight}
+                note="sample metric"
+              />
+              <StatCard
+                title="Returning customers"
+                value="28.4%"
+                change="+2.3%"
+                positive
+                icon={Users}
+                note="sample metric"
+              />
+              <StatCard
+                title="Refund rate"
+                value="1.2%"
+                change="-0.4%"
+                icon={ArrowDownRight}
+                note="sample metric"
+              />
+              <div className="panel analytics-note">
+                <Activity size={22} />
+                <h2>Store performance</h2>
+                <p>
+                  These example analytics will be replaced with calculations
+                  from real orders and product data once the backend endpoints
+                  are connected.
+                </p>
+              </div>
+            </section>
+          )}
+
+          {page === 'Discounts' && (
+            <section className="panel orders-panel">
+              <div className="panel-heading">
+                <div>
+                  <h2>Discount codes</h2>
+                  <p>Manage promotional codes and usage.</p>
+                </div>
+                <button
+                  className="primary-button"
+                  onClick={() =>
+                    window.alert(
+                      'Discount creation will be connected in the next phase.',
+                    )
+                  }
+                >
+                  ＋ Create discount
+                </button>
+              </div>
+
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Discount</th>
+                      <th>Usage</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {discounts
+                      .filter((discount) =>
+                        discount.code
+                          .toLowerCase()
+                          .includes(search.toLowerCase()),
+                      )
+                      .map((discount) => (
+                        <tr key={discount.code}>
+                          <td>
+                            <strong className="discount-code">
+                              {discount.code}
+                            </strong>
+                          </td>
+                          <td>{discount.type}</td>
+                          <td>{discount.usage}</td>
+                          <td>
+                            <span
+                              className={`status-pill ${
+                                discount.status === 'Active'
+                                  ? 'status-confirmed'
+                                  : 'status-cancelled'
+                              }`}
+                            >
+                              {discount.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <p className="discount-note">
+                Discounts are sample records. Creating and validating real
+                codes will require backend support.
+              </p>
+            </section>
+          )}
+
+          <footer className="page-footer">
+            <span>
+              Ràtech Admin <span className="footer-dot">●</span> Preview
+              environment
+            </span>
+            <span>Built for better commerce.</span>
+          </footer>
+        </div>
+      </main>
+    </div>
+  )
+}
+
+export default App
