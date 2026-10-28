@@ -1,4 +1,4 @@
-import 'pg';
+import pg from 'pg';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -17,6 +17,7 @@ import { PasswordReset } from '../auth/password-reset.entity.js';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
+        driver: pg,
         host: configService.get<string>('DB_HOST'),
         port: Number(configService.get<string>('DB_PORT') ?? 5432),
         username: configService.get<string>('DB_USERNAME'),
