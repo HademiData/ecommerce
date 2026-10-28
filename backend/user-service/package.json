@@ -14,8 +14,6 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "start:monolith": "pnpm run build:monolith && node dist/user-service/src/monolith/main.js",
-    "build:monolith": "nest build --config nest-monolith-cli.json",
     "lint": "oxlint --type-aware src/ test/",
     "test": "vitest run",
     "test:watch": "vitest",

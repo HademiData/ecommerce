@@ -73,4 +73,31 @@ export class ProductsController {
     ) {
     return this.productsService.releaseStock(id, quantity);
     }
+
+    @Post(':id/reserve-order')
+    @UseGuards(InternalServiceGuard)
+    reserveStockForOrder(
+      @Param('id') id: string,
+      @Body() body: { quantity: number; reservationId: string },
+    ) {
+      return this.productsService.reserveStockForOrder(
+        id,
+        body.quantity,
+        body.reservationId,
+      );
+    }
+
+    @Post(':id/release-order')
+    @UseGuards(InternalServiceGuard)
+    releaseStockForOrder(
+      @Param('id') id: string,
+      @Body() body: { quantity: number; reservationId: string },
+    ) {
+      return this.productsService.releaseStockForOrder(
+        id,
+        body.quantity,
+        body.reservationId,
+      );
+    }
+
 }

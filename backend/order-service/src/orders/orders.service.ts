@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
-import { ProductsService } from '../../../product-service/src/products/products.service.js';
+import { ProductsClient } from './products.client.js';
 
 @Injectable()
 export class OrdersService {
@@ -15,7 +15,7 @@ export class OrdersService {
 
   constructor(
     private readonly db: DatabaseService,
-    private readonly products: ProductsService,
+    private readonly products: ProductsClient,
   ) {}
 
   async create(userId: string, dto: CreateOrderDto) {
