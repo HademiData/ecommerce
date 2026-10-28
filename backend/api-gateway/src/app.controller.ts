@@ -76,7 +76,8 @@ export class AppController {
       }
 
       const upstream = process.env[envName] ?? defaultUrl;
-      const response = await fetch(`${upstream}${req.originalUrl}`, {
+      const path = req.originalUrl.replace(/^\/api(?=\/|\?|$)/, '');
+      const response = await fetch(`${upstream}${path}`, {
         method: req.method,
         headers,
         redirect: 'manual',

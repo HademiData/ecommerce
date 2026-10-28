@@ -1,0 +1,57 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "api-gateway": {
+      "root": "backend/api-gateway",
+      "framework": "nestjs",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "user-service",
+          "format": "url",
+          "env": "USER_SERVICE_URL"
+        },
+        {
+          "type": "service",
+          "service": "product-service",
+          "format": "url",
+          "env": "PRODUCT_SERVICE_URL"
+        },
+        {
+          "type": "service",
+          "service": "order-service",
+          "format": "url",
+          "env": "ORDER_SERVICE_URL"
+        }
+      ]
+    },
+    "user-service": {
+      "root": "backend/user-service",
+      "framework": "nestjs"
+    },
+    "product-service": {
+      "root": "backend/product-service",
+      "framework": "nestjs"
+    },
+    "order-service": {
+      "root": "backend/order-service",
+      "framework": "nestjs",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "product-service",
+          "format": "url",
+          "env": "PRODUCT_SERVICE_URL"
+        }
+      ]
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "api-gateway"
+      }
+    }
+  ]
+}
