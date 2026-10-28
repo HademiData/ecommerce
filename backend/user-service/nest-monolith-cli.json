@@ -1,0 +1,9 @@
+{
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src/monolith",
+  "entryFile": "main",
+  "compilerOptions": {
+    "deleteOutDir": false,
+    "tsConfigPath": "tsconfig.monolith.json"
+  }
+}

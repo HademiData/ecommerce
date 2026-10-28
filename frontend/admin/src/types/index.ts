@@ -24,6 +24,15 @@ export type Order = {
   date: string
   amount: string
   status: string
+  items: OrderItem[]
+}
+
+export type OrderItem = {
+  id: string
+  productId: string
+  name: string
+  quantity: number
+  unitPrice: number
 }
 
 export type Customer = {

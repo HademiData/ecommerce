@@ -1,34 +1,28 @@
 # E-Commerce Platform
 
-A futuristic e-commerce platform for gadgets, accessories, and everyday technology products, built with a microservices architecture.
+A futuristic e-commerce platform for gadgets, accessories, and everyday technology products. The `monolith` branch runs the backend as one NestJS application while keeping the customer and admin frontends as separate React apps.
 
 The project focuses on clean architecture, secure authentication, database design, service separation, automated testing, and maintainable backend development.
 
 ## Architecture
 
-The platform consists of three backend microservices, an API Gateway, a customer-facing frontend, and an admin dashboard.
+The platform's default local runtime on this branch consists of one NestJS backend, a customer-facing frontend, and an admin dashboard. The backend composes the existing user, product, and order domain modules.
 
 ```text
                     Customer / Admin
                            |
                     React Frontend
                            |
-                      API Gateway
+                   NestJS Monolith
                         :3003
                            |
           ┌────────────────┼────────────────┐
           |                |                |
-     User/Auth          Product           Order
-      Service            Service          Service
-       :3000              :3001            :3002
-          |                |                |
       PostgreSQL         MongoDB           MySQL
-                                         + Prisma
-          |
-     Authentication
+       (users)          (products)         (orders)
 ```
 
-The frontend communicates with backend services through the API Gateway rather than calling each microservice directly.
+Both frontends continue to use their existing `/api` proxy to port `3003`. The monolith calls product operations directly in-process and does not use the API Gateway, separate backend service processes, or RabbitMQ.
 
 ## Services and Features
 
@@ -102,7 +96,7 @@ Responsible for product information, catalog operations, and stock management.
 
 The service supports controlled stock changes to help prevent concurrent requests from reserving the same available inventory.
 
-The Order Service communicates with the Product Service when checking and reserving inventory.
+Order operations use the product domain module in-process to look up products and reserve inventory.
 
 **Database:** MongoDB, accessed through Mongoose.
 
@@ -131,13 +125,13 @@ The service retrieves product information and prices from the backend rather tha
 
 **Database:** MySQL, accessed through Prisma ORM.
 
-**Testing:** Unit tests, end-to-end tests, isolated MySQL integration tests, and a RabbitMQ integration test.
+**Testing:** Unit tests and isolated MySQL integration tests. The standalone service mode also retains its RabbitMQ integration test.
 
-### 4. API Gateway
+### 4. API Gateway (standalone service mode)
 
 **Technology:** NestJS, TypeScript.
 
-The API Gateway provides a central entry point for frontend requests.
+The API Gateway is retained for the standalone service mode. The monolith branch runs the domain modules directly on port `3003`.
 
 **Features**
 
@@ -198,7 +192,7 @@ This separation allows each service to manage its own data model and database op
 | Relational databases | PostgreSQL, MySQL |
 | Document database | MongoDB |
 | ORM / ODM | TypeORM, Prisma, Mongoose |
-| Messaging | RabbitMQ |
+| Messaging | RabbitMQ for standalone service mode; not used by the monolith |
 | Caching | Redis |
 | Containers | Docker |
 | Testing | Unit, E2E, and integration tests |
@@ -240,6 +234,7 @@ ecommerce/
 │   └── web/
 ├── backend/
 │   ├── user-service/
+│   │   └── src/monolith/
 │   ├── product-service/
 │   ├── order-service/
 │   └── api-gateway/
@@ -273,49 +268,32 @@ pnpm install
 
 ### 2. Start Infrastructure
 
-Copy the example variables, then start the complete local infrastructure. Compose creates its named volumes automatically:
+Copy the example variables, then start only the databases required by the monolith. RabbitMQ is not needed. Compose creates its named volumes automatically:
 
 ```bash
 cp .env.example .env
-docker compose up -d
+docker compose up -d postgres mongo mysql
 ```
 
-### 3. Start the Backend Services
+### 3. Start the Monolithic Backend
 
-Open separate terminals from the project root.
-
-User/Auth Service:
-
-```bash
-pnpm --filter user-service start:dev
-```
-
-Product Service:
-
-```bash
-pnpm --filter product-service start:dev
-```
-
-Order Service:
-
-```bash
 pnpm --filter order-service exec prisma migrate deploy
-pnpm --filter order-service start:dev
+pnpm --filter user-service start:monolith
 ```
 
-API Gateway:
+This starts authentication, user, product, and order APIs together on port
+`3003`. Use `MONOLITH_PORT` to choose another port.
 
-```bash
-pnpm --filter api-gateway start:dev
-```
-
-### 4. Start the Frontend
+### 4. Start a Frontend
 
 ```bash
 pnpm --filter web dev
 ```
 
-### 5. Verify the API Gateway
+For the admin dashboard, use a separate terminal and run
+`pnpm --filter admin dev`.
+
+### 5. Verify the Monolith
 
 ```bash
 curl http://localhost:3003/health
@@ -354,7 +332,7 @@ The project follows these principles:
 | PostgreSQL | Implemented in User/Auth Service |
 | MongoDB | Implemented in Product Service |
 | MySQL | Implemented in Order Service |
-| RabbitMQ | Integrated and tested for order-related messaging |
+| RabbitMQ | Not required by the monolith; retained for standalone service mode |
 | Redis | Running locally through Docker Compose; application integration pending |
 
 ## Planned Improvements

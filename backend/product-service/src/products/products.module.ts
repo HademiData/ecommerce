@@ -10,8 +10,6 @@ import {
   ReservationSchema,
 } from '../reservations/schemas/reservation.schema.js';
 import { InternalServiceGuard } from '../auth/internal-service.guard.js';
-import { StockReservationConsumer } from '../messaging/stock-reservation.consumer.js';
-import { RabbitMQService } from '../messaging/rabbitmq.service.js';
 
 import {
   StockOperation,
@@ -30,8 +28,7 @@ import {
   providers: [
     ProductsService,
     InternalServiceGuard,
-    RabbitMQService,
-    StockReservationConsumer,
   ],
+  exports: [ProductsService],
 })
 export class ProductsModule {}

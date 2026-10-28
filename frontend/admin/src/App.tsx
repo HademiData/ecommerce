@@ -25,6 +25,10 @@ function mapOrder(order: ApiOrder, customerNames: Map<string, string>): Order {
     date: order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '—',
     amount: String(order.totalAmount ?? 0),
     status: order.status,
+    items: (order.items ?? []).map((item) => ({
+      ...item,
+      unitPrice: Number(item.unitPrice),
+    })),
   }
 }
 

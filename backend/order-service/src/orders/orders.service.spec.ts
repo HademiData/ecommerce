@@ -1,9 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  BadGatewayException,
-  BadRequestException,
-} from '@nestjs/common';
-import { of } from 'rxjs';
+import { BadRequestException } from '@nestjs/common';
 import { OrdersService } from './orders.service.js';
 
 describe('OrdersService', () => {
@@ -13,64 +9,53 @@ describe('OrdersService', () => {
       create: vi.fn(),
       findMany: vi.fn(),
       findFirst: vi.fn(),
+      update: vi.fn(),
       updateMany: vi.fn(),
     },
-    outboxEvent: { create: vi.fn() },
   };
 
-  const http = {
-    get: vi.fn(),
+  const products = {
+    findOne: vi.fn(),
+    reserveStockForOrder: vi.fn(),
+    releaseStockForOrder: vi.fn(),
   };
 
-  const config = {
-    get: vi.fn(),
-  };
-
-  const transaction = {
-    order: db.order,
-    outboxEvent: db.outboxEvent,
-  };
-
+  const transaction = { order: db.order };
   let service: OrdersService;
 
   beforeEach(() => {
     vi.clearAllMocks();
     db.$transaction.mockImplementation((callback) => callback(transaction));
-    db.outboxEvent.create.mockResolvedValue({});
-
-    config.get.mockReturnValue('http://localhost:3001');
-
-    http.get.mockReturnValue(
-      of({
-        data: {
-          _id: 'product-1',
-          name: 'Wireless Keyboard',
-          price: 25000,
-          isActive: true,
-        },
-      }),
-    );
-
+    products.findOne.mockResolvedValue({
+      _id: 'product-1',
+      name: 'Wireless Keyboard',
+      price: 25000,
+      isActive: true,
+    });
+    products.reserveStockForOrder.mockResolvedValue({});
+    products.releaseStockForOrder.mockResolvedValue({});
     db.order.create.mockResolvedValue({
       id: 'order-1',
       status: 'PENDING',
       totalAmount: '25000.00',
       items: [],
     });
+    db.order.update.mockResolvedValue({
+      id: 'order-1',
+      status: 'CONFIRMED',
+      totalAmount: '25000.00',
+      items: [],
+    });
 
-    service = new OrdersService(
-      db as never,
-      http as never,
-      config as never,
-    );
+    service = new OrdersService(db as never, products as never);
   });
 
-  it('creates a pending order and records a stock reservation event', async () => {
+  it('creates a confirmed order and reserves stock in-process', async () => {
     const result = await service.create('user-1', {
       items: [{ productId: 'product-1', quantity: 1 }],
     });
 
-    expect(result.status).toBe('PENDING');
+    expect(result.status).toBe('CONFIRMED');
     expect(db.$transaction).toHaveBeenCalledOnce();
     expect(db.order.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -81,19 +66,14 @@ describe('OrdersService', () => {
         }),
       }),
     );
-
-    expect(db.outboxEvent.create).toHaveBeenCalledWith({
-      data: {
-        topic: 'stock.reserve',
-        payload: {
-          orderId: 'order-1',
-          items: [{ productId: 'product-1', quantity: 1 }],
-        },
-      },
-    });
+    expect(products.reserveStockForOrder).toHaveBeenCalledWith(
+      'product-1',
+      1,
+      'order-1',
+    );
   });
 
-  it('combines repeated product IDs before calculating the total', async () => {
+  it('combines repeated product IDs before calculating and reserving', async () => {
     await service.create('user-1', {
       items: [
         { productId: 'product-1', quantity: 1 },
@@ -101,8 +81,7 @@ describe('OrdersService', () => {
       ],
     });
 
-    expect(http.get).toHaveBeenCalledTimes(1);
-
+    expect(products.findOne).toHaveBeenCalledTimes(1);
     expect(db.order.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -119,19 +98,20 @@ describe('OrdersService', () => {
         }),
       }),
     );
+    expect(products.reserveStockForOrder).toHaveBeenCalledWith(
+      'product-1',
+      3,
+      'order-1',
+    );
   });
 
   it('rejects an inactive product', async () => {
-    http.get.mockReturnValue(
-      of({
-        data: {
-          _id: 'product-1',
-          name: 'Wireless Keyboard',
-          price: 25000,
-          isActive: false,
-        },
-      }),
-    );
+    products.findOne.mockResolvedValue({
+      _id: 'product-1',
+      name: 'Wireless Keyboard',
+      price: 25000,
+      isActive: false,
+    });
 
     await expect(
       service.create('user-1', {
@@ -143,16 +123,12 @@ describe('OrdersService', () => {
   });
 
   it('rejects an invalid product price', async () => {
-    http.get.mockReturnValue(
-      of({
-        data: {
-          _id: 'product-1',
-          name: 'Wireless Keyboard',
-          price: 'invalid',
-          isActive: true,
-        },
-      }),
-    );
+    products.findOne.mockResolvedValue({
+      _id: 'product-1',
+      name: 'Wireless Keyboard',
+      price: 'invalid',
+      isActive: true,
+    });
 
     await expect(
       service.create('user-1', {
@@ -163,49 +139,48 @@ describe('OrdersService', () => {
     expect(db.order.create).not.toHaveBeenCalled();
   });
 
-  it('returns a gateway error when the Product Service is unavailable', async () => {
-    http.get.mockImplementation(() => {
-      throw new Error('Connection refused');
+  it('restores already reserved stock and cancels the order on failure', async () => {
+    products.findOne
+      .mockResolvedValueOnce({
+        _id: 'product-1',
+        name: 'Keyboard',
+        price: 25000,
+        isActive: true,
+      })
+      .mockResolvedValueOnce({
+        _id: 'product-2',
+        name: 'Mouse',
+        price: 10000,
+        isActive: true,
+      });
+    products.reserveStockForOrder
+      .mockResolvedValueOnce({})
+      .mockRejectedValueOnce(new BadRequestException('Out of stock'));
+
+    await expect(
+      service.create('user-1', {
+        items: [
+          { productId: 'product-1', quantity: 1 },
+          { productId: 'product-2', quantity: 1 },
+        ],
+      }),
+    ).rejects.toThrow('Out of stock');
+
+    expect(products.releaseStockForOrder).toHaveBeenCalledWith(
+      'product-1',
+      1,
+      'order-1',
+    );
+    expect(db.order.update).toHaveBeenCalledWith({
+      where: { id: 'order-1' },
+      data: { status: 'CANCELLED' },
     });
-
-    await expect(
-      service.create('user-1', {
-        items: [{ productId: 'product-1', quantity: 1 }],
-      }),
-    ).rejects.toBeInstanceOf(BadGatewayException);
-
-    expect(db.order.create).not.toHaveBeenCalled();
   });
 
-  it('returns a gateway error when the Product Service URL is missing', async () => {
-    config.get.mockReturnValue(undefined);
-
-    await expect(
-      service.create('user-1', {
-        items: [{ productId: 'product-1', quantity: 1 }],
-      }),
-    ).rejects.toBeInstanceOf(BadGatewayException);
-
-    expect(http.get).not.toHaveBeenCalled();
-    expect(db.order.create).not.toHaveBeenCalled();
-  });
-
-  it('does not save an order if its stock event cannot be recorded', async () => {
-    db.outboxEvent.create.mockRejectedValue(new Error('Database unavailable'));
-
-    await expect(
-      service.create('user-1', {
-        items: [{ productId: 'product-1', quantity: 1 }],
-      }),
-    ).rejects.toThrow('Database unavailable');
-
-    expect(db.$transaction).toHaveBeenCalledOnce();
-  });
-
-  it('records cancellation and its stock event in one transaction', async () => {
+  it('cancels a confirmed order and releases reserved stock', async () => {
     db.order.findFirst.mockResolvedValue({
       id: 'order-1',
-      status: 'PENDING',
+      status: 'CONFIRMED',
       items: [{ productId: 'product-1', quantity: 2 }],
     });
     db.order.updateMany.mockResolvedValue({ count: 1 });
@@ -217,18 +192,14 @@ describe('OrdersService', () => {
     });
 
     expect(db.order.updateMany).toHaveBeenCalledWith({
-      where: { id: 'order-1', userId: 'user-1', status: 'PENDING' },
+      where: { id: 'order-1', userId: 'user-1', status: 'CONFIRMED' },
       data: { status: 'CANCELLED' },
     });
-    expect(db.outboxEvent.create).toHaveBeenCalledWith({
-      data: {
-        topic: 'stock.cancel',
-        payload: {
-          orderId: 'order-1',
-          items: [{ productId: 'product-1', quantity: 2 }],
-        },
-      },
-    });
+    expect(products.releaseStockForOrder).toHaveBeenCalledWith(
+      'product-1',
+      2,
+      'order-1',
+    );
   });
 });
 
@@ -239,23 +210,22 @@ describe('OrdersService retrieval', () => {
       create: vi.fn(),
       findMany: vi.fn(),
       findFirst: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn(),
     },
-    outboxEvent: { create: vi.fn() },
   };
 
-  const http = { get: vi.fn() };
-  const config = { get: vi.fn() };
+  const products = {
+    findOne: vi.fn(),
+    reserveStockForOrder: vi.fn(),
+    releaseStockForOrder: vi.fn(),
+  };
 
   let service: OrdersService;
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    service = new OrdersService(
-      db as never,
-      http as never,
-      config as never,
-    );
+    service = new OrdersService(db as never, products as never);
   });
 
   it('returns only the authenticated user’s orders', async () => {

@@ -119,10 +119,12 @@ describe('AuthService', () => {
       password: 'StrongPass!123',
     });
 
-    expect(jwtService.signAsync).toHaveBeenCalledWith({
-      sub: user.id,
-      role: user.role,
-    });
+    expect(jwtService.signAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sub: user.id,
+        role: user.role,
+      }),
+    );
     expect(sessionRepository.save).toHaveBeenCalledWith(
       expect.objectContaining({
         user,
@@ -215,7 +217,9 @@ describe('AuthService', () => {
   it('returns the same safe response for unknown forgot-password emails', async () => {
     usersService.findByEmail.mockResolvedValue(null);
 
-    await expect(service.forgotPassword('unknown@example.com')).resolves.toEqual({
+    await expect(
+      service.forgotPassword('unknown@example.com'),
+    ).resolves.toEqual({
       message: 'If the email exists, a reset code has been sent',
     });
 
@@ -265,10 +269,12 @@ describe('AuthService', () => {
       lastName: user.lastName,
     });
 
-    expect(jwtService.signAsync).toHaveBeenCalledWith({
-      sub: user.id,
-      role: user.role,
-    });
+    expect(jwtService.signAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sub: user.id,
+        role: user.role,
+      }),
+    );
     expect(sessionRepository.save).toHaveBeenCalled();
     expect(result.user.id).toBe(user.id);
   });
