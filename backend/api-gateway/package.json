@@ -6,6 +6,10 @@
   "private": true,
   "license": "UNLICENSED",
   "type": "module",
+
+  "engines": {
+  "node": "22.x"
+  },
   "scripts": {
     "build": "nest build",
     "deploy": "nest deploy",
