@@ -110,5 +110,6 @@ ProductsController = __decorate([
     Controller('products'),
     __metadata("design:paramtypes", [ProductsService])
 ], ProductsController);
+
 export { ProductsController };
 //# sourceMappingURL=products.controller.js.map
