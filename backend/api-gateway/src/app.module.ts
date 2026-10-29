@@ -6,6 +6,7 @@ import { AppController } from './app.controller.js';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: './.env',
     }),
   ],
   controllers: [AppController],

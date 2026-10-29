@@ -21,3 +21,5 @@ docker-compose.yml.backup*
 pnpm-lock.yaml.backup
 
 pnpm-lock.yaml.before-gateway-repair
+.vercel
+.env*
