@@ -6,9 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "type": "module",
-
   "engines": {
-  "node": "22.x"
+    "node": "22.x"
   },
   "scripts": {
     "build": "nest build",
@@ -31,6 +30,7 @@
     "@nestjs/core": "^12.1.2",
     "@nestjs/observe": "^0.3.0",
     "@nestjs/platform-express": "^12.1.2",
+    "express": "^5.3.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
