@@ -82,7 +82,7 @@ export class AppController {
         }
       }
 
-      const upstream = (process.env[envName] ?? defaultUrl).replace(/\/+$/, '');      
+      const upstream = (process.env[envName] ?? defaultUrl).replace(/\/+$/, '');
       const path = req.originalUrl.replace(/^\/api(?=\/|\?|$)/, '');
 
       const response = await fetch(`${upstream}${path}`, {
@@ -97,6 +97,23 @@ export class AppController {
 
       res.status(response.status);
 
+      // Preserve multiple Set-Cookie headers separately.
+      const responseHeaders = response.headers as Headers & {
+        getSetCookie?: () => string[];
+      };
+
+      const setCookies = responseHeaders.getSetCookie?.() ?? [];
+
+      if (setCookies.length > 0) {
+        res.setHeader('Set-Cookie', setCookies);
+      } else {
+        const setCookie = response.headers.get('set-cookie');
+
+        if (setCookie) {
+          res.setHeader('Set-Cookie', setCookie);
+        }
+      }
+
       response.headers.forEach((value, key) => {
         if (
           ![
@@ -104,6 +121,7 @@ export class AppController {
             'content-length',
             'content-encoding',
             'transfer-encoding',
+            'set-cookie',
           ].includes(key.toLowerCase())
         ) {
           res.setHeader(key, value);
