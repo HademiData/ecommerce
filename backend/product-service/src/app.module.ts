@@ -1,12 +1,8 @@
-
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductsModule } from './products/products.module.js';
 import { AuthModule } from './auth/auth.module.js';
-
-
-
 
 @Module({
   imports: [
@@ -14,13 +10,15 @@ import { AuthModule } from './auth/auth.module.js';
       isGlobal: true,
       envFilePath: './.env',
     }),
+
     MongooseModule.forRootAsync({
-      imports: [ConfigModule, ProductsModule],
+      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         uri: configService.getOrThrow<string>('MONGODB_URI'),
       }),
     }),
+
     ProductsModule,
     AuthModule,
   ],
