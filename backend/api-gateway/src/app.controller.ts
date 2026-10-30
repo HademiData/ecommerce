@@ -11,10 +11,7 @@ import type { Request, Response } from 'express';
 
 @Controller()
 export class AppController {
-
-
-
-  @All(['orders', 'orders/*path'])
+  @All(['orders', 'orders/*path', 'api/orders', 'api/orders/*path'])
   orders(@Req() req: Request, @Res() res: Response) {
     return this.forward(
       req,
@@ -24,22 +21,32 @@ export class AppController {
     );
   }
 
-  @Get('health')
+  @Get(['health', 'api/health'])
   health() {
     return { status: 'ok' };
   }
 
-  @All(['auth', 'auth/*path'])
+  @All(['auth', 'auth/*path', 'api/auth', 'api/auth/*path'])
   auth(@Req() req: Request, @Res() res: Response) {
-    return this.forward(req, res, 'USER_SERVICE_URL', 'http://localhost:3000');
+    return this.forward(
+      req,
+      res,
+      'USER_SERVICE_URL',
+      'http://localhost:3000',
+    );
   }
 
-  @All(['users', 'users/*path'])
+  @All(['users', 'users/*path', 'api/users', 'api/users/*path'])
   users(@Req() req: Request, @Res() res: Response) {
-    return this.forward(req, res, 'USER_SERVICE_URL', 'http://localhost:3000');
+    return this.forward(
+      req,
+      res,
+      'USER_SERVICE_URL',
+      'http://localhost:3000',
+    );
   }
 
-  @All(['products', 'products/*path'])
+  @All(['products', 'products/*path', 'api/products', 'api/products/*path'])
   products(@Req() req: Request, @Res() res: Response) {
     return this.forward(
       req,
@@ -77,6 +84,7 @@ export class AppController {
 
       const upstream = process.env[envName] ?? defaultUrl;
       const path = req.originalUrl.replace(/^\/api(?=\/|\?|$)/, '');
+
       const response = await fetch(`${upstream}${path}`, {
         method: req.method,
         headers,
@@ -105,6 +113,7 @@ export class AppController {
       res.send(Buffer.from(await response.arrayBuffer()));
     } catch {
       console.error('Gateway forwarding error:');
+
       if (!res.headersSent) {
         throw new HttpException(
           { message: 'Backend service unavailable' },
