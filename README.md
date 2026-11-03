@@ -2,6 +2,9 @@
 
 A futuristic e-commerce platform for gadgets, accessories, and everyday technology products. The `monolith` branch runs the backend as one NestJS application while keeping the customer and admin frontends as separate React apps.
 
+<p align="center">
+  <img src="HERO.png" alt="Portfolio Website Preview" width="100%">
+</p>
 The project focuses on clean architecture, secure authentication, database design, service separation, automated testing, and maintainable backend development.
 
 ## Architecture
