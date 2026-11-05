@@ -24,7 +24,6 @@ const NewArrivals = ({ products, loading, error }: Props) => {
     <section className="new-arrivals" id="new-arrivals">
       <div className="arrivals-header">
         <div>
-          <p className="arrivals-eyebrow">THE LATEST FINDS</p>
           <h2>New arrivals.</h2>
           <p className="arrivals-description">
             Discover the essentials shaping everyday living.

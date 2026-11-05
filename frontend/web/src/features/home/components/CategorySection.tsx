@@ -33,7 +33,6 @@ export default function CategorySection({ products }: { products: HomeProduct[] 
   return (
     <section className="category-section" id="categories">
       <header className="category-header">
-        <p className="category-eyebrow">CURATED FOR EVERYDAY</p>
         <h2>Find your next essential.</h2>
         <p className="category-intro">
           Explore technology for work, home and everyday life.

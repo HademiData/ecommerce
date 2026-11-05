@@ -71,7 +71,7 @@ export default function HeroSection({ products }: { products: HomeProduct[] }) {
       <div className="hero-overlay" />
 
       <div className="hero-content">
-        <p className="hero-eyebrow">TECHNOLOGY FOR MODERN LIVING</p>
+        
 
         <h1 id="hero-title">
           SMARTER PRODUCTS
